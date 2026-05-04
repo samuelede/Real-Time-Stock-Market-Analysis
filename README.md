@@ -319,4 +319,4 @@ Working through this project builds practical skills in:
 
 ## License
 
-This project is licensed under the [MIT License](https://github.com/samuelede/Real-Time-Stock-Market-Analysis?tab=MIT-1-ov-file#)
+This project is licensed under the [MIT License](LICENSE)
