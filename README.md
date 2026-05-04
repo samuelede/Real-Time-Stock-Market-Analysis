@@ -319,4 +319,4 @@ Working through this project builds practical skills in:
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE)
+This project is licensed under the [MIT License](LICENSE?tab=MIT-1-ov-file)
