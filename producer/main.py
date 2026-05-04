@@ -1,10 +1,14 @@
 from extract import connect_to_api, extract_json # Add extract_json here
+from producer_setup import init_producer, topic
+import time
+
+producer = init_producer()
 
 def main():
     response = connect_to_api()
 
     data = extract_json(response)
-
+    producer = init_producer()
     for stock in data:
         result = {
             'date': stock['date'],
@@ -15,9 +19,13 @@ def main():
             'close': stock['close'],
             'volume': stock['volume']
         }
-        print(result)
+        producer.send(topic, result)
+        print('Data sent to {topic} topic')
+        time.sleep(2)     # Sleep for a while to avoid overwhelming the Kafka topic
 
-    return None
+        producer.flush()  # Ensure all messages are sent before exiting
+        producer.close()  # Close the producer connection
+        return None
 
 if __name__ == "__main__":
     main()
