@@ -20,12 +20,14 @@ def main():
             'volume': stock['volume']
         }
         producer.send(topic, result)
-        print('Data sent to {topic} topic')
+        print(f'Data sent to {topic} topic')
         time.sleep(2)     # Sleep for a while to avoid overwhelming the Kafka topic
 
-        producer.flush()  # Ensure all messages are sent before exiting
-        producer.close()  # Close the producer connection
-        return None
+    producer.flush()  # Ensure all messages are sent before exiting
+    producer.close()  # Close the producer connection
+    
+    print("All stock data successfully delivered and connection closed cleanly.")
+    return None
 
 if __name__ == "__main__":
     main()
