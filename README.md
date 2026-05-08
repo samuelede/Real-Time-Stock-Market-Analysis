@@ -8,42 +8,51 @@ A scalable, end-to-end data pipeline to ingest, process, and visualise stock mar
 
 ## Table of Contents
 
-- [Real-Time Stock Market Analysis](#real-time-stock-market-analysis)
-  - [Table of Contents](#table-of-contents)
-  - [Project Overview](#project-overview)
-    - [Expected Outcomes](#expected-outcomes)
-  - [Business Context](#business-context)
-  - [Pipeline Architecture](#pipeline-architecture)
-    - [Tech Stack and Data Flow](#tech-stack-and-data-flow)
-  - [Prerequisites](#prerequisites)
-  - [Getting Started](#getting-started)
-    - [1. Clone the repository](#1-clone-the-repository)
-    - [2. Configure environment variables](#2-configure-environment-variables)
-    - [3. Install Python dependencies (for the producer)](#3-install-python-dependencies-for-the-producer)
-  - [Running the Pipeline](#running-the-pipeline)
-    - [Step 1 — Start all infrastructure services](#step-1--start-all-infrastructure-services)
-    - [Step 2 — Confirm Kafka is ready](#step-2--confirm-kafka-is-ready)
-    - [Step 3 — Start the stock data producer](#step-3--start-the-stock-data-producer)
-    - [Step 4 — Submit the Spark streaming job](#step-4--submit-the-spark-streaming-job)
-    - [Step 5 — Verify data in PostgreSQL](#step-5--verify-data-in-postgresql)
-  - [Accessing the Services](#accessing-the-services)
-  - [Connecting Power BI](#connecting-power-bi)
-  - [Project Structure](#project-structure)
-  - [Environment Variables](#environment-variables)
-  - [Stopping the Pipeline](#stopping-the-pipeline)
-  - [Learning Outcomes](#learning-outcomes)
-  - [License](#license)
+<ol>
+  <li><a href="#project-overview" style="color: white; text-decoration: none;">Project Overview</a></li>
+  <li><a href="#business-context" style="color: white; text-decoration: none;">Business Context</a></li>
+  <li><a href="#pipeline-architecture" style="color: white; text-decoration: none;">Pipeline Architecture</a></li>
+  <li><a href="#tech-stack" style="color: white; text-decoration: none;">Tech Stack</a></li>
+  <li><a href="#prerequisites" style="color: white; text-decoration: none;">Prerequisites</a></li>
+  <li><a href="#getting-started" style="color: white; text-decoration: none;">Getting Started</a>
+    <ol>
+      <li><a href="#step-1--create-a-rapidapi-account-and-get-your-alpha-vantage-api-key" style="color: white; text-decoration: none;">Create a RapidAPI account and get your Alpha Vantage API key</a></li>
+      <li><a href="#step-2--clone-the-repository" style="color: white; text-decoration: none;">Clone the repository</a></li>
+      <li><a href="#step-3--configure-environment-variables" style="color: white; text-decoration: none;">Configure environment variables</a></li>
+      <li><a href="#step-4--install-python-dependencies" style="color: white; text-decoration: none;">Install Python dependencies</a></li>
+      <li><a href="#step-5--test-the-api-connection" style="color: white; text-decoration: none;">Test the API connection</a></li>
+    </ol>
+  </li>
+  <li><a href="#running-the-pipeline" style="color: white; text-decoration: none;">Running the Pipeline</a>
+    <ol>
+      <li><a href="#step-1--start-all-infrastructure-services" style="color: white; text-decoration: none;">Start all infrastructure services</a></li>
+      <li><a href="#step-2--confirm-kafka-is-ready" style="color: white; text-decoration: none;">Confirm Kafka is ready</a></li>
+      <li><a href="#step-3--start-the-stock-data-producer" style="color: white; text-decoration: none;">Start the stock data producer</a></li>
+      <li><a href="#step-4--submit-the-spark-streaming-job" style="color: white; text-decoration: none;">Submit the Spark streaming job</a></li>
+      <li><a href="#step-5--verify-data-in-postgresql" style="color: white; text-decoration: none;">Verify data in PostgreSQL</a></li>
+    </ol>
+  </li>
+  <li><a href="#accessing-the-services" style="color: white; text-decoration: none;">Accessing the Services</a></li>
+  <li><a href="#connecting-power-bi" style="color: white; text-decoration: none;">Connecting Power BI</a></li>
+  <li><a href="#project-structure" style="color: white; text-decoration: none;">Project Structure</a></li>
+  <li><a href="#environment-variables" style="color: white; text-decoration: none;">Environment Variables</a></li>
+  <li><a href="#stopping-the-pipeline" style="color: white; text-decoration: none;">Stopping the Pipeline</a></li>
+  <li><a href="#learning-outcomes" style="color: white; text-decoration: none;">Learning Outcomes</a></li>
+  <li><a href="#contributing" style="color: white; text-decoration: none;">Contributing</a></li>
+  <li><a href="#license" style="color: white; text-decoration: none;">License</a></li>
+</ol>
 
 ---
 
 ## Project Overview
 
-MarketPulse Analytics faces increasing demand for ultra-low latency financial data as data volumes grow. The current infrastructure struggles to handle peak market periods — such as stock market opens and earnings reports — leading to delays that affect trading decisions and client satisfaction.
+MarketPulse Analytics faces increasing demand for ultra-low latency financial data as data volumes grow. The current infrastructure struggles to handle peak market periods such as stock market opens and earnings reports leading to delays that affect trading decisions and client satisfaction.
 
 This project addresses those challenges by building a fault-tolerant, real-time data pipeline that:
 
-- **Collects** stock market data from financial sources and streams it through Apache Kafka
-- **Processes** the stream in real-time using Apache Spark for transformations and analytics
+- **Collects** stock market data from the [Alpha Vantage API](https://rapidapi.com/alphavantage/api/alpha-vantage) via RapidAPI, providing live equity prices, trading volumes, and financial metrics
+- **Streams** the collected data through Apache Kafka for real-time event processing
+- **Processes** the stream using Apache Spark for transformations and analytics
 - **Stores** processed data in PostgreSQL for querying and reporting
 - **Visualises** insights via Power BI dashboards, delivering real-time stock trends, trading volumes, and sentiment signals to clients
 
@@ -116,24 +125,40 @@ docker compose version
 
 ## Getting Started
 
-### 1. Clone the repository
+### Step 1 — Create a RapidAPI account and get your Alpha Vantage API key
+
+The producer fetches live stock market data from the **Alpha Vantage** API, accessed via RapidAPI.
+
+1. Go to [https://rapidapi.com](https://rapidapi.com) and sign up for a free account using a valid email address
+2. Once logged in, use the search bar to search for **Alpha Vantage**
+3. From the results, select the one listed under the **Finance** category
+4. On the API page, click the **Test Endpoint** tab to browse the available endpoints and confirm results are returning successfully
+5. In the code snippet panel on the right, select **Python** from the language dropdown
+6. Copy the generated code — this reflects the structure used in `producer/extract.py`
+7. Navigate to the **Pricing** tab and subscribe to the free tier if prompted
+
+Once you have your key, copy it from the **App** section under your RapidAPI dashboard (it appears as the `X-RapidAPI-Key` header value in the code snippet).
+
+### Step 2 — Clone the repository
 
 ```bash
 git clone https://github.com/samuelede/Real-Time-Stock-Market-Analysis.git
 cd Real-Time-Stock-Market-Analysis
 ```
 
-### 2. Configure environment variables
+### Step 3 — Configure environment variables
 
-Create a `.env` file in the project root. This file is used by `compose.yml` to inject secrets into the PostgreSQL container:
+Create a `.env` file in the project root:
 
 ```bash
-cp .env.example .env   # if an example file exists, otherwise create manually
+touch .env
 ```
 
-Populate `.env` with your credentials:
+Populate it with your credentials — the API key must come first:
 
 ```env
+API_KEY=your_rapidapi_key_here
+
 POSTGRES_USER=your_postgres_user
 POSTGRES_PASSWORD=your_postgres_password
 POSTGRES_DB=stock_market
@@ -141,13 +166,21 @@ POSTGRES_DB=stock_market
 
 > **Important:** Never commit your `.env` file to version control. It is listed in `.gitignore` by default.
 
-### 3. Install Python dependencies (for the producer)
+### Step 4 — Install Python dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
----
+### Step 5 — Test the API connection
+
+Before starting the full pipeline, confirm the producer can successfully fetch data from Alpha Vantage:
+
+```bash
+python producer/extract.py
+```
+
+You should see stock market data printed to the terminal. If you receive an authentication error, double-check your `API_KEY` value in `.env`.
 
 ## Running the Pipeline
 
@@ -183,11 +216,10 @@ You should see a cluster named **local** with no topics yet. If the cluster does
 
 ### Step 3 — Start the stock data producer
 
-The producer application publishes simulated (or live) stock market events as JSON to a Kafka topic. Run it from the `producer/` directory:
+The producer fetches live stock market data from Alpha Vantage and publishes it as JSON events to Kafka. Run it from the project root:
 
 ```bash
-cd producer
-python producer.py
+python producer/main.py
 ```
 
 Once running, return to Kafka UI (`http://localhost:8085`) and navigate to **Topics**. You should see the stock market topic appear with incoming messages.
@@ -264,11 +296,20 @@ For scheduled refresh or cloud publishing, configure the **Power BI On-premises 
 
 ```
 Real-Time-Stock-Market-Analysis/
-├── producer/               # Kafka producer — publishes stock events to Kafka
-├── img/                    # Architecture diagrams and assets
-├── compose.yml             # Docker Compose service definitions
-├── requirements.txt        # Python dependencies
-├── .env                    # Local environment variables (not committed)
+├── consumer/
+│   ├── consumer.py          # Spark streaming job — consumes from Kafka, writes to PostgreSQL
+│   └── Dockerfile           # Container definition for the Spark consumer
+├── img/
+│   └── data-pipeline-architecture.svg   # Architecture diagram
+├── producer/
+│   ├── config.py            # Configuration and environment variable loading
+│   ├── extract.py           # Fetches stock data from Alpha Vantage via RapidAPI
+│   ├── main.py              # Entry point — orchestrates extraction and Kafka publishing
+│   └── producer_setup.py   # Kafka producer initialisation and topic setup
+├── compose.yml              # Docker Compose service definitions
+├── requirements.txt         # Python dependencies
+├── consumer.py              # Top-level consumer script (root-level entry point)
+├── .env                     # Local environment variables (not committed)
 ├── .gitignore
 └── README.md
 ```
@@ -281,11 +322,12 @@ The following variables are required in your `.env` file:
 
 | Variable | Description | Example |
 |---|---|---|
+| `API_KEY` | RapidAPI key for Alpha Vantage stock data | `your_rapidapi_key_here` |
 | `POSTGRES_USER` | PostgreSQL superuser name | `stockuser` |
 | `POSTGRES_PASSWORD` | PostgreSQL password | `securepassword` |
 | `POSTGRES_DB` | Name of the database to create | `stock_market` |
 
-These are injected into the `postgres` service at container startup via `compose.yml`.
+These are injected into the relevant services at container startup via `compose.yml`.
 
 ---
 
@@ -314,6 +356,41 @@ Working through this project builds practical skills in:
 - **Containerisation** — orchestrating multi-service architectures with Docker Compose
 - **Analytics and visualisation** — connecting live operational data to Power BI for client-facing reporting
 - **Secrets management** — handling credentials securely via environment variables
+
+---
+
+## Contributing
+
+Contributions are welcome and appreciated. If you'd like to improve the pipeline, fix a bug, or extend the project with new features, please follow the steps below.
+
+### How to contribute
+
+1. **Fork the repository** — click the Fork button at the top of the [GitHub page](https://github.com/samuelede/Real-Time-Stock-Market-Analysis)
+2. **Create a feature branch** from `main`:
+```bash
+   git checkout -b feature/your-feature-name
+```
+3. **Make your changes** and ensure the pipeline still runs end-to-end before committing
+4. **Commit with a clear message:**
+```bash
+   git commit -m "feat: describe what your change does"
+```
+5. **Push your branch:**
+```bash
+   git push origin feature/your-feature-name
+```
+6. **Open a Pull Request** against the `main` branch with a description of what you changed and why
+
+### Guidelines
+
+- Keep pull requests focused — one feature or fix per PR
+- Follow the existing code style and naming conventions
+- If adding a new service or dependency, update `compose.yml`, `requirements.txt`, and this README accordingly
+- Do not commit `.env` files or any credentials
+
+### Reporting issues
+
+Found a bug or have a suggestion? Open an issue on the [Issues page](https://github.com/samuelede/Real-Time-Stock-Market-Analysis/issues) with as much detail as possible, including steps to reproduce if applicable.
 
 ---
 
